@@ -9,7 +9,7 @@ pub fn run(world: HitableList, width: usize, aspect_ratio: AspectRatio) -> Vec<V
     let height = aspect_ratio.calc_height(width);
     let mut image_matrix: Vec<Vec<Rgb>> = vec![vec![Rgb::default(); width]; height];
 
-    let camera = Camera::new(aspect_ratio);
+    let camera = Camera::new(aspect_ratio, -1.0);
     let mut rng = rand::thread_rng();
 
     for y in 0..height {
@@ -63,37 +63,30 @@ impl Ray {
 
 struct Camera {
     origin: Vector,
-    viewplane: Viewplane,
-}
-
-struct Viewplane {
+    // viewport
     lower_left_corner: Vector,
     horizontal: Vector,
     vertical: Vector,
 }
 
-impl Viewplane {
-    pub fn new(origin: &Vector, aspect_ratio: &AspectRatio, focal_len: f32) -> Self {
+impl Camera {
+    pub fn new(aspect_ratio: AspectRatio, focal_len: f32) -> Self {
+        let origin = Vector::default();
         let viewp_h = 2.0;
         let viewp_w = aspect_ratio.resize(viewp_h);
-        Viewplane {
-            lower_left_corner: Vector::new(
-                origin.x - viewp_w / 2.0,
-                origin.y - viewp_h / 2.0,
-                focal_len,
-            ),
+        let lower_left_corner = Vector::new(
+            origin.x - viewp_w / 2.0,
+            origin.y - viewp_h / 2.0,
+            focal_len,
+        );
+        Camera {
+            origin,
+            lower_left_corner,
             horizontal: Vector::new(viewp_w, 0.0, 0.0),
             vertical: Vector::new(0.0, viewp_h, 0.0),
         }
     }
-}
 
-impl Camera {
-    pub fn new(aspect_ratio: AspectRatio) -> Self {
-        let origin = Vector::default();
-        let viewplane = Viewplane::new(&origin, &aspect_ratio, -1.0);
-        Camera { origin, viewplane }
-    }
     // UV-Coordinates
     pub fn get_ray(&self, u: f32, v: f32) -> Ray {
         Ray {
@@ -103,8 +96,6 @@ impl Camera {
     }
 
     fn calculate_ray_dir(&self, u: f32, v: f32) -> Vector {
-        self.viewplane.lower_left_corner
-            + u * self.viewplane.horizontal
-            + v * self.viewplane.vertical
+        self.lower_left_corner + u * self.horizontal + v * self.vertical
     }
 }
