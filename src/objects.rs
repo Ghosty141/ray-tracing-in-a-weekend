@@ -1,3 +1,4 @@
+use crate::materials::Material;
 use crate::raytracer::Ray;
 use crate::vector::Vector;
 
@@ -6,10 +7,11 @@ pub trait Hitable {
     fn is_hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 }
 
-pub struct HitRecord {
+pub struct HitRecord<'h> {
     pub normal: Vector,
     pub ray_pos: f32,
     pub at: Vector,
+    pub material: &'h Box<dyn Material>,
 }
 
 pub struct HitableList {
@@ -37,15 +39,17 @@ impl HitableList {
 }
 
 pub struct Sphere {
-    pub center: Vector,
-    pub rad: f32,
+    center: Vector,
+    rad: f32,
+    material: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector, radius: f32) -> Sphere {
+    pub fn new(center: Vector, radius: f32, material: Box<dyn Material>) -> Sphere {
         Sphere {
             center,
             rad: radius,
+            material,
         }
     }
 }
@@ -87,6 +91,7 @@ impl Hitable for Sphere {
             normal: (intersection_point - self.center).normalize(),
             at: intersection_point,
             ray_pos,
+            material: &self.material,
         })
     }
 }

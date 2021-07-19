@@ -1,13 +1,15 @@
+mod materials;
 mod objects;
 mod raytracer;
 mod vector;
 
 extern crate image;
 
+use crate::materials::{Lambertian, Metal};
 use crate::objects::*;
 use crate::vector::Vector;
 
-const WIDTH: usize = 200;
+const WIDTH: usize = 600;
 
 fn main() {
     let aspect_ratio = AspectRatio::new(2, 1);
@@ -19,8 +21,28 @@ fn main() {
 
 fn get_world() -> HitableList {
     let mut hitables: Vec<Box<dyn Hitable>> = Vec::new();
-    hitables.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -1.0), 0.5)));
-    hitables.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0)));
+    let mat1 = Box::new(Lambertian {});
+    let mat2 = Box::new(Metal {});
+    hitables.push(Box::new(Sphere::new(
+        Vector::new(0.0, 0.0, -1.0),
+        0.5,
+        mat1.clone(),
+    )));
+    hitables.push(Box::new(Sphere::new(
+        Vector::new(1.0, 0.0, -1.0),
+        0.5,
+        mat2.clone(),
+    )));
+    hitables.push(Box::new(Sphere::new(
+        Vector::new(-1.0, 0.0, -1.0),
+        0.5,
+        mat2.clone(),
+    )));
+    hitables.push(Box::new(Sphere::new(
+        Vector::new(0.0, -100.5, -1.0),
+        100.0,
+        mat1.clone(),
+    )));
     HitableList::new(hitables)
 }
 
