@@ -5,14 +5,14 @@ mod vector;
 
 extern crate image;
 
-use crate::materials::{Lambertian, Metal};
+use crate::materials::*;
 use crate::objects::*;
 use crate::vector::Vector;
 
-const WIDTH: usize = 600;
+const WIDTH: usize = 640;
 
 fn main() {
-    let aspect_ratio = AspectRatio::new(2, 1);
+    let aspect_ratio = AspectRatio::new(16, 9);
     let height = aspect_ratio.calc_height(WIDTH);
     let world = get_world();
     let viewplane = raytracer::run(world, WIDTH, aspect_ratio);
@@ -21,27 +21,25 @@ fn main() {
 
 fn get_world() -> HitableList {
     let mut hitables: Vec<Box<dyn Hitable>> = Vec::new();
-    let mat1 = Box::new(Lambertian {});
-    let mat2 = Box::new(Metal {});
     hitables.push(Box::new(Sphere::new(
         Vector::new(0.0, 0.0, -1.0),
         0.5,
-        mat1.clone(),
+        Box::new(Diffuse::new(Rgb::new(0.8, 0.3, 0.3))),
     )));
     hitables.push(Box::new(Sphere::new(
         Vector::new(1.0, 0.0, -1.0),
         0.5,
-        mat2.clone(),
+        Box::new(Metal::new(Rgb::new(0.8, 0.6, 0.2))),
     )));
     hitables.push(Box::new(Sphere::new(
         Vector::new(-1.0, 0.0, -1.0),
         0.5,
-        mat2.clone(),
+        Box::new(Metal::new(Rgb::new(0.8, 0.8, 0.8))),
     )));
     hitables.push(Box::new(Sphere::new(
         Vector::new(0.0, -100.5, -1.0),
         100.0,
-        mat1.clone(),
+        Box::new(Diffuse::new(Rgb::new(0.8, 0.8, 0.0))),
     )));
     HitableList::new(hitables)
 }
@@ -73,5 +71,5 @@ fn create_image(matrix: &Vec<Vec<Rgb>>, width: usize, height: usize) {
         let rgb = matrix[y as usize][x as usize] * 255.0;
         *pixel = image::Rgb([rgb.x as u8, rgb.y as u8, rgb.z as u8]);
     }
-    imgbuf.save("fractal.png").unwrap();
+    imgbuf.save("render.png").unwrap();
 }

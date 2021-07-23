@@ -1,4 +1,3 @@
-use crate::materials::*;
 use crate::objects::*;
 use crate::vector::Vector;
 use crate::{AspectRatio, Rgb};
@@ -27,7 +26,9 @@ pub fn run(world: HitableList, width: usize, aspect_ratio: AspectRatio) -> Vec<V
                 let r = camera.get_ray(u, v);
                 color = color + calc_color(&r, &world, 0);
             }
-            image_matrix[height - y - 1][x] = color / RAYS_PER_PIXEL as f32; // todo implement div
+            color = color / RAYS_PER_PIXEL as f32;
+            color = Vector::new(color.x.sqrt(), color.y.sqrt(), color.z.sqrt());
+            image_matrix[height - y - 1][x] = color;
         }
     }
 
@@ -35,13 +36,16 @@ pub fn run(world: HitableList, width: usize, aspect_ratio: AspectRatio) -> Vec<V
 }
 
 fn calc_color(ray: &Ray, world: &HitableList, depth: u16) -> Rgb {
-    if depth > 20 {
+    if depth > 50 {
         return Rgb::default();
     }
     if let Some(hitrecord) = world.is_hit(ray, 0.001, f32::MAX) {
-        let new_ray = hitrecord.material.scatter(&ray, hitrecord);
-        // 0.5 is just the factor by which the brightness gets reduced per bounce
-        return 0.5 * calc_color(&new_ray, world, depth + 1);
+        let albedo = hitrecord.material.get_albedo();
+        return if let Some(new_ray) = hitrecord.material.scatter(&ray, hitrecord) {
+            albedo * calc_color(&new_ray, world, depth + 1)
+        } else {
+            Rgb::default()
+        };
     }
     let unit_direction = ray.dir.normalize();
     let t: f32 = 0.5 * (unit_direction.y + 1.0);
